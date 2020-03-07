@@ -19,7 +19,3 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-
-
-src/views/Restaurants.vue
-src/views/TopRestaurants.vue
