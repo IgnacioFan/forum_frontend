@@ -38,7 +38,7 @@ const routes = [
     component: () => import('../views/Feeds.vue')
   },
   {
-    path: '/users/popular',
+    path: '/users/populars',
     name: 'popular-writers',
     component: () => import('../views/PopularWriters.vue')
   },
@@ -50,6 +50,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
+  linkExactActiveClass: 'active',
   routes
 })
 
