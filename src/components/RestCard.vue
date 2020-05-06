@@ -10,7 +10,9 @@
       >
       <div class="card-body">
         <p class="card-text title-wrap">
-          <a href="#">{{ restaurant.name }}</a>
+          <router-link :to="{ name: 'restaurant', params: { id: restaurant.id } }" >
+            {{ restaurant.name }}
+          </router-link>
         </p>
         <span class="badge badge-secondary">{{ restaurant.Category.name }}</span>
         <p class="card-text text-truncate">
@@ -22,7 +24,7 @@
           v-if="restaurant.isFavorited" 
           type="button" 
           class="btn btn-danger btn-border favorite mr-2"
-          @click.stop.prevent="deleteFavorite"
+          @click.stop.prevent="removeFavorite"
         >
           remove favorite
         </button>
@@ -37,7 +39,7 @@
           v-if="restaurant.isLiked" 
           type="button" 
           class="btn btn-danger like mr-2"
-          @click.stop.prevent="deleteLike"
+          @click.stop.prevent="removeLike"
         >
          Unlike
         </button>
@@ -72,7 +74,7 @@ export default {
         isFavorited: true
       }
     },
-    deleteFavorite() {
+    removeFavorite() {
       this.restaurant = {
         ...this.restaurant,
         isFavorited: false
@@ -84,7 +86,7 @@ export default {
         isLiked: true
       }
     },
-    deleteLike() {
+    removeLike() {
       this.restaurant = {
         ...this.restaurant,
         isLiked: false
