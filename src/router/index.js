@@ -53,6 +53,11 @@ const routes = [
     component: () => import('../views/PopularWriters.vue')
   },
   {
+    path: '/users/:id',
+    name: 'user-profile',
+    component: () => import('../views/User.vue')
+  },
+  {
     path: '*',
     name: '404',
     component: NotFound
