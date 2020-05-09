@@ -21,7 +21,7 @@
     <div id="navbarSupportedContent" class="navbar-collapse collapse">
       <div class="ml-auto d-flex align-items-center">
         <!-- is user admin -->
-        <router-link v-if="currentUser.isAdmin" to="#" class="text-white mr-3">Admin</router-link>
+        <router-link v-if="currentUser.isAdmin" to="/admin" class="text-white mr-3">Admin</router-link>
         <!-- is user login -->
         <template v-if="isAuthenticated">
           <router-link to="#" class="text-white mr-3">Hey, {{ currentUser.name || 'user' }}</router-link>

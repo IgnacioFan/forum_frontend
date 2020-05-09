@@ -7,3 +7,11 @@ export const fromNowFilter = {
     }
   }
 }
+
+export const emptyImageFilter = {
+  filters: {
+    emptyImage(src) {
+      return src || 'http://via.placeholder.com/300X300?test=No+Image'
+    }
+  }
+}
