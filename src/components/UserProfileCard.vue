@@ -15,12 +15,12 @@
         </li>
         <li class="list-group-item p-0 border-0 px-2 text-secondary">{{ userProfile.email }}</li>
         <li class="list-group-item px-2 border-0">
-          <a
+          <router-link
             v-if="userProfile.isAdmin"
-            href="#"
+            :to="{ name: 'user-profile-edit', params: { id: userProfile.id} }"
             class="btn btn-primary"
             role="button"
-          >Edit</a>
+          >Edit</router-link>
         </li>
         <li v-if="userProfile.isFollowed" class="list-group-item py-4 px-2 border-0">
           <button

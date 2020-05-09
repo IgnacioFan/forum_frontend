@@ -83,6 +83,11 @@ const routes = [
     component: () => import('../views/User.vue')
   },
   {
+    path: '/users/:id/edit',
+    name: 'user-profile-edit',
+    component: () => import('../views/UserEdit.vue')
+  },
+  {
     path: '*',
     name: '404',
     component: NotFound
