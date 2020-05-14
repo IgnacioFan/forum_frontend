@@ -1,6 +1,6 @@
 <template>
   <div class="container py-5">
-    <form class="w-100" @submit.prevent.stop="handleSubmit">
+    <form class="w-100" @submit.prevent="handleSubmit">
       <div class="text-center mb-4">
         <h1 class="h3 mb-3 font-weight-normal">
           Sign In Page
@@ -15,7 +15,7 @@
           type="email"
           class="form-control"
           placeholder="email"
-          required
+          
           autofocus
         >
       </div>
@@ -28,11 +28,13 @@
           type="password"
           class="form-control"
           placeholder="password"
-          required
+          
         >
       </div>
       <button
         class="btn btn-lg btn-primary btn-block mb-3"
+        type="submit"
+        :disabled="isProcessing"
       >
         Submit
       </button>
@@ -52,24 +54,51 @@
 </template>
 
 <script>
-/* eslint-disable */
+import authorizationAPI from '../apis/authorization';
+import { Toast } from '../utils/helpers';
+
 export default {
   name: 'SignIn',
   data() {
     return {
-      email: '',
-      password: ''
+      email: "",
+      password: "",
+      isProcessing: false
     }
   },
   methods: {
-    handleSubmit (e) {
-      const data = JSON.stringify({
+    handleSubmit () {
+      
+      if(!(this.email && this.password)) {
+        Toast.fire({
+          icon: 'warning',
+          title: 'Please, enter email and password!'
+        });
+        return;
+      }
+
+      this.isProcessing = true;
+
+      authorizationAPI.signIn({
         email: this.email,
         password: this.password
-      })
+      }).then(response => {
+        console.log('response', response.data)
+        // pick data object from response
+        const { data } = response
 
-      // verify the input data
-      console.log('data', data)
+        if(data.status !== 'success') throw new Error(data.message)
+        localStorage.setItem('token', data.token)
+        this.$router.push('/restaurants')
+      }).catch(error => {
+        this.password = '';
+        Toast.fire({
+          icon: 'warning',
+          title: 'Please, confirm your email and password!'
+        });
+        this.isProcessing = false;
+        console.log('error', error);
+      })
     }
   }
 }
