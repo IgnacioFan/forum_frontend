@@ -24,14 +24,14 @@
           v-if="restaurant.isFavorited" 
           type="button" 
           class="btn btn-danger btn-border favorite mr-2"
-          @click.stop.prevent="removeFavorite"
+          @click.stop.prevent="removeFavorite(restaurant.id)"
         >
           remove favorite
         </button>
         <button 
           v-else type="button" 
           class="btn btn-primary btn-border favorite mr-2"
-          @click.stop.prevent="addFavorite"
+          @click.stop.prevent="addFavorite(restaurant.id)"
         >
           add favorite
         </button>
@@ -39,14 +39,14 @@
           v-if="restaurant.isLiked" 
           type="button" 
           class="btn btn-danger like mr-2"
-          @click.stop.prevent="removeLike"
+          @click.stop.prevent="removeLike(restaurant.id)"
         >
          Unlike
         </button>
         <button 
           v-else type="button" 
           class="btn btn-primary like mr-2"
-          @click.stop.prevent="addLike"
+          @click.stop.prevent="addLike(restaurant.id)"
         >
           Like
         </button>
@@ -55,6 +55,9 @@
   </div>
 </template>
 <script>
+import usersAPI from '../apis/users';
+import { Toast } from '../utils/helpers';
+
 export default {
   props: {
     initialRestaurant: {
@@ -68,28 +71,76 @@ export default {
     }
   },
   methods: {
-    addFavorite () {
-      this.restaurant = {
-        ...this.restaurant,
-        isFavorited: true
+    async addFavorite (restaurantId) {
+      try {
+        const { data } = await usersAPI.addFavorite({restaurantId});
+
+        if(data.status !== 'success') throw new Error(data.message);
+
+        this.restaurant = {
+          ...this.restaurant,
+          isFavorited: true
+        };
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot add restaurant to your favorites, please try it later!'
+        })
       }
     },
-    removeFavorite() {
-      this.restaurant = {
-        ...this.restaurant,
-        isFavorited: false
+    async removeFavorite(restaurantId) {
+      try {
+        const { data } = await usersAPI.removeFavorite({restaurantId});
+
+        if(data.status !== 'success') throw new Error(data.message);
+
+        this.restaurant = {
+          ...this.restaurant,
+          isFavorited: false
+        };
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot remove restaurant to your favorites, please try it later!'
+        })
       }
     },
-    addLike() {
-      this.restaurant = {
-        ...this.restaurant,
-        isLiked: true
+    async addLike(restaurantId) {
+      try {
+        const { data } = await usersAPI.addLike({restaurantId});
+
+        if(data.status !== 'success') throw new Error(data.message);
+
+        this.restaurant = {
+          ...this.restaurant,
+          isLiked: true
+        };
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot like this restaurant, please try it later!'
+        })
       }
     },
-    removeLike() {
-      this.restaurant = {
-        ...this.restaurant,
-        isLiked: false
+    async removeLike(restaurantId) {
+      try {
+        const { data } = await usersAPI.removeLike({restaurantId});
+
+        if(data.status !== 'success') throw new Error(data.message);
+
+        this.restaurant = {
+          ...this.restaurant,
+          isLiked: false
+        };
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot dislike this restaurant, please try it later!'
+        })
       }
     }
   }

@@ -2,19 +2,19 @@
   <div class="col-3">
     <a href="#">
       <img
-        src="http://via.placeholder.com/300X300?test=No+Image"
+        :src="user.image"
         width="140px"
         height="140px"
       >
     </a>
     <h2>{{user.name}}</h2>
-    <span class="badge badge-secondary">Following: {{user.FollowerCount}}</span>
+    <span class="badge badge-secondary">Following: {{user.followerCount}}</span>
     <p class="mt-3">
       <button
         v-if="user.isFollowed"
         type="button"
         class="btn btn-danger"
-        @click.stop.prevent="removeFollowing"
+        @click.stop.prevent="removeFollowing(user.id)"
       >
       not Follow
       </button>
@@ -22,7 +22,7 @@
         v-else
         type="button"
         class="btn btn-primary"
-        @click.stop.prevent="addFollowing"
+        @click.stop.prevent="addFollowing(user.id)"
       >
       Follow
       </button>
@@ -30,6 +30,9 @@
   </div>
 </template>
 <script>
+import usersAPI from '../apis/users';
+import { Toast } from '../utils/helpers';
+
 export default {
   props: {
     initialUser: {
@@ -43,17 +46,39 @@ export default {
     }
   },
   methods: {
-    removeFollowing() {
-      this.user = {
-        ...this.user,
-        isFollowed: false
+    async removeFollowing(userId) {
+      try {
+        const { data } = await usersAPI.removeFollowing({userId});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.user = {
+          ...this.user,
+          followerCount: this.user.followerCount-1,
+          isFollowed: false
+        }
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: "Cannot remove user's following, please try it later"
+        });
       }
     },
 
-    addFollowing() {
-      this.user = {
-        ...this.user,
-        isFollowed: true
+    async addFollowing(userId) {
+      try {
+        const { data } = await usersAPI.addFollowing({userId});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.user = {
+          ...this.user,
+          followerCount: this.user.followerCount+1,
+          isFollowed: true
+        }
+      } catch(error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: "Cannot add user's following, please try it later"
+        });
       }
     },
   }
