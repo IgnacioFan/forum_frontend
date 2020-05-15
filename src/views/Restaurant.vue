@@ -14,6 +14,7 @@
   </div>
 </template>
 <script>
+import restaurantAPI from '../apis/restaurants';
 import RestDetail from '../components/RestDetail.vue';
 import RestComment from '../components/RestComment.vue';
 import CreateComment from '../components/CreateComment.vue';
@@ -97,11 +98,20 @@ export default {
   },
   created() {
     const { id: restaurantId } = this.$route.params;
-    this.fetchRestaurant(restaurantId)
+    this.fetchRestaurant({restaurantId})
   },
   methods: {
-    fetchRestaurant(restaurantId) {
+    async fetchRestaurant({restaurantId}) {
       console.log('fetch id'+restaurantId);
+      try {
+        const response = await restaurantAPI.getRestaurant({
+          restaurantId
+        })
+        console.log('restaurant', response)
+      } catch(error) {
+        console.log('restaurant', error)
+      }
+      
       this.restaurant = {
         id: dummyData.restaurant.id,
         name: dummyData.restaurant.name,

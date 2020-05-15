@@ -8,7 +8,7 @@ export const apiHelper = axios.create({
   baseURL: baseUrl,
   // timeout: 1000,
   // headers: {'Access-Control-Allow-Origin': '*'},
-  responseType: 'json'
+  // responseType: 'json'
 })
 
 export const Toast = Swal.mixin({

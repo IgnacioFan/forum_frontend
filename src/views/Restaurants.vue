@@ -23,11 +23,13 @@
 </template>
 
 <script>
+import restaurantsAPI from '../apis/restaurants';
 import NavTabs from './../components/NavTabs.vue'
 import RestCard from './../components/RestCard.vue'
 import RestNavPills from './../components/RestNavPills.vue'
 import RestPagination from './../components/RestPagination.vue'
-
+import { Toast } from '../utils/helpers';
+/* eslint-disable */
 const dummyData = {
   restaurants: [
     {
@@ -134,26 +136,43 @@ export default {
     } 
   },
   created(){
-    this.fetchRestaurants();
+    const { page = '', categoryId = '' } = this.$route.query;
+    this.fetchRestaurants({
+      queryPage: page,
+      queryCategoryId: categoryId
+    });
+  },
+  beforeRouteUpdate(to, from, next) {
+    const { page = '', categoryId = '' } = to.query
+    this.fetchRestaurants({ queryPage: page, queryCategoryId: categoryId})
+    next();
   },
   methods: {
-    fetchRestaurants () {
-      const {
-        restaurants,
-        categories,
-        categoryId,
-        page,
-        totalPage,
-        prev,
-        next
-      } = dummyData;
-      this.restaurants = restaurants;
-      this.categories = categories;
-      this.categoryId = categoryId;
-      this.currentPage = page;
-      this.totalPage = totalPage;
-      this.previousPage = prev;
-      this.nextPage = next;
+    async fetchRestaurants ({ queryPage, queryCategoryId }) {
+      try {
+        const response = await restaurantsAPI.getRestaurants({
+          page: queryPage,
+          categoryId: queryCategoryId
+        });
+
+        if(response.statusText !== 'OK') throw new Error(statusText)
+
+        const { restaurants, categories, categoryId, page, totalPage, prev, next } = response.data;
+         
+        this.restaurants = restaurants;
+        this.categories = categories;
+        this.categoryId = categoryId;
+        this.currentPage = page;
+        this.totalPage = totalPage;
+        this.previousPage = prev;
+        this.nextPage = next;
+      } catch(error) {
+        console.log('restaurants',error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot fetch restuarant datas, please try again later!'
+        })
+      }
     }
   }
 }
