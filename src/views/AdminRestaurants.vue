@@ -7,17 +7,17 @@
     >
       Create New Restaurant
     </router-link>
-    <AdminRestaurantsTable />
+    <AdminRestTable />
   </div>
 </template>
 <script>
 import AdminNav from '../components/AdminNav'
-import AdminRestaurantsTable from '../components/AdminRestaurantsTable'
+import AdminRestTable from '../components/AdminRestTable'
 
 export default {
   components: {
     AdminNav,
-    AdminRestaurantsTable
+    AdminRestTable
   }
 }
 </script>
