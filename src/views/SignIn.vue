@@ -55,7 +55,7 @@
 
 <script>
 import authorizationAPI from '../apis/authorization';
-import { Toast } from '../utils/helpers';
+import { Toast, validateForm } from '../utils/helpers';
 
 export default {
   name: 'SignIn',
@@ -69,37 +69,31 @@ export default {
   methods: {
     async handleSubmit () {
       try{
-        if(!(this.email && this.password)) {
-          Toast.fire({
-            icon: 'warning',
-            title: 'Please, enter email and password!'
-          });
-          return;
-        }
-
+        // email and password input cannot be blank
+        if(!(this.email && this.password)) return validateForm('without email and password!');
+        // block the submit btn
         this.isProcessing = true;
 
-        const response = await authorizationAPI.signIn({
+        const { data } = await authorizationAPI.signIn({
           email: this.email,
           password: this.password
         })
 
-        console.log('response', response.data)
-        // pick data object from response
-        const { data } = response
-
-        if(data.status === 'error') throw new Error(data.message)
-        localStorage.setItem('token', data.token)
+        if(data.status === 'error') throw new Error(data.message);
+        // store token in localstorage in browser
+        localStorage.setItem('token', data.token);
+        // call vuex and pass user data to state
+        this.$store.commit('setCurrentUser', data.user);
+        // redirect to restaurants
         this.$router.push('/restaurants')
-
       } catch(error) {
+        console.log('error', error);
+        this.isProcessing = false;
         this.password = '';
         Toast.fire({
-          icon: 'warning',
+          icon: 'error',
           title: 'Please, confirm your email and password!'
         });
-        this.isProcessing = false;
-        console.log('error', error);
       }
     }
   }
