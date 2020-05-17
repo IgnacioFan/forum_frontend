@@ -17,3 +17,10 @@ export const Toast = Swal.mixin({
   showConfirmButton: false,
   timer: 3000
 })
+
+export const validateForm = (string) => {
+  Toast.fire({
+    icon: 'warning',
+    title: `Cannot submit ${string}!`
+  });
+}

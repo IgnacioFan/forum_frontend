@@ -60,6 +60,7 @@
       </div>
 
       <button
+        :disabled="isProcessing"
         class="btn btn-lg btn-primary btn-block mb-3"
         type="submit"
       >
@@ -81,6 +82,9 @@
 </template>
 
 <script>
+import authorizationAPI from '../apis/authorization';
+import { Toast, validateForm } from '../utils/helpers';
+
 /* eslint-disable */
 export default {
   name: "SignUp",
@@ -89,19 +93,37 @@ export default {
       name: '',
       email: '',
       password: '',
-      passwordCheck: ''
+      passwordCheck: '',
+      isProcessing: false
     }
   },
   methods: {
-    handleSubmit (e) {
-      const data = JSON.stringify({
-        name: this.name,
-        email: this.email,
-        password: this.password,
-        passwordCheck: this.passwordCheck
-      })
-
-    console.log('data', data)
+    async handleSubmit (e) {
+      try {
+        if(!this.name) return validateForm('without name');
+        if(!this.email) return validateForm('without email');
+        if(this.password !== this.passwordCheck){
+          this.password = '';
+          this.passwordCheck = '';
+          return validateForm(', because passord-check is not equal to password');
+        } 
+        this.isProcessing = true;
+        const { data } = await authorizationAPI.signUp({
+          name: this.name,
+          email: this.email,
+          password: this.password,
+          passwordCheck: this.passwordCheck
+        })
+        if(data.status !== 'success') throw new Error(data.message);
+        this.$router.push('/signin');
+      } catch(error) {
+        console.log(error)
+        this.isProcessing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Fail to sign up, please try it later!'
+        })
+      }
     }
   }
 }

@@ -1,5 +1,8 @@
 <template>
-  <div class="container py-5">
+  <div 
+    v-show="!isLoading"
+    class="container py-5"
+  >
     <div class="row">
       <div class="col-md-12">
         <h1>{{ restaurant.name }}</h1>
@@ -39,32 +42,14 @@
       type="button"
       class="btn btn-link"
       @click="$router.back()"
-    >回上一頁</button>
+    >Back</button>
   </div>
 </template>
 <script>
-import { emptyImageFilter } from './../utils/mixins'
-const dummyData = {
-  restaurant: {
-    id: 2,
-    name: 'Mrs. Mckenzie Johnston',
-    tel: '567-714-6131 x621',
-    address: '61371 Rosalinda Knoll',
-    opening_hours: '08:00',
-    description:
-      'Quia pariatur perferendis architecto tenetur omnis pariatur tempore.',
-    image: 'https://loremflickr.com/320/240/food,dessert,restaurant/?random=2',
-    createdAt: '2019-06-22T09:00:43.000Z',
-    updatedAt: '2019-06-22T09:00:43.000Z',
-    CategoryId: 3,
-    Category: {
-      id: 3,
-      name: '義大利料理',
-      createdAt: '2019-06-22T09:00:43.000Z',
-      updatedAt: '2019-06-22T09:00:43.000Z'
-    }
-  }
-}
+import adminAPI from '../apis/admin';
+import { Toast } from '../utils/helpers';
+import { emptyImageFilter } from '../utils/mixins';
+
 export default {
   name: 'AdminRestaurant',
   mixins: [emptyImageFilter],
@@ -79,26 +64,42 @@ export default {
         tel: '',
         address: '',
         description: ''
-      }
+      },
+      isLoading: true
     }
+  },
+  beforeRouteUpdate(to, from, next){
+    const { id: restaurantId } = to.params;
+    this.fetchRestaurant(restaurantId);
+    next();
   },
   mounted () {
     const { id: restaurantId } = this.$route.params
     this.fetchRestaurant(restaurantId)
   },
   methods: {
-    fetchRestaurant (restaurantId) {
-      const { restaurant } = dummyData
-      this.restaurant = {
-        ...this.restaurant,
-        id: restaurantId,
-        name: restaurant.name,
-        categoryName: restaurant.Category.name,
-        image: restaurant.image,
-        openingHours: restaurant.opening_hours,
-        tel: restaurant.tel,
-        address: restaurant.address,
-        description: restaurant.description
+    async fetchRestaurant (restaurantId) {
+      try {
+        const { data } = await adminAPI.restaurants.getDetail({restaurantId});
+        this.restaurant = {
+          ...this.restaurant,
+          id: data.restaurant.id,
+          name: data.restaurant.name,
+          categoryName: data.restaurant.Category.name,
+          tel: data.restaurant.tel,
+          address: data.restaurant.address,
+          description: data.restaurant.description,
+          image: data.restaurant.image,
+          openingHours: data.restaurant.opening_hours
+        }
+        this.isLoading = false;
+      } catch(error) {
+        this.isLoading = false;
+        console.log(error)
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot load this restaurant info, please try it later!'
+        })
       }
     }
   }

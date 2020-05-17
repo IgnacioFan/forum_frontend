@@ -1,5 +1,8 @@
 <template>
-  <div class="container py-5">
+  <div 
+    v-show="!isLoading"
+    class="container py-5"
+  >
     <AdminNav />
 
     <form class="my-4">
@@ -16,6 +19,7 @@
           <button
             type="button"
             class="btn btn-primary"
+            :disabled="isProcessing"
             @click.stop.prevent="createCategory"
           >
             Create
@@ -103,37 +107,10 @@
 
 <script>
 /* eslint-disable */
+import adminAPI from '../apis/admin';
+import { Toast, validateForm } from '../utils/helpers';
 import AdminNav from '../components/AdminNav';
 import uuid from 'uuid/v4';
-
-const dummyData = {
-  categories: [
-    {
-      id: 1,
-      name: '中式料理',
-      createdAt: '2019-06-22T09:00:43.000Z',
-      updatedAt: '2019-06-22T09:00:43.000Z'
-    },
-    {
-      id: 2,
-      name: '日本料理',
-      createdAt: '2019-06-22T09:00:43.000Z',
-      updatedAt: '2019-06-22T09:00:43.000Z'
-    },
-    {
-      id: 3,
-      name: '義大利料理',
-      createdAt: '2019-06-22T09:00:43.000Z',
-      updatedAt: '2019-06-22T09:00:43.000Z'
-    },
-    {
-      id: 4,
-      name: '墨西哥料理',
-      createdAt: '2019-06-22T09:00:43.000Z',
-      updatedAt: '2019-06-22T09:00:43.000Z'
-    }
-  ]
-}
 
 export default {
   components: {
@@ -142,37 +119,68 @@ export default {
   data () {
     return {
       categories: [],
-      newCategoryName: ''
+      newCategoryName: '',
+      isLoading: true,
+      isProcessing: false
     }
   },
   created () {
     this.fetchCategories();
   },
   methods: {
-    // 定義 `fetchCategories` 方法，把 `dummyData` 帶入 Vue 物件
-    fetchCategories () {
-      this.categories = dummyData.categories.map(category => ({
-        ...category,
-        isEditing: false,
-        nameCache: ''
-      }));
+    async fetchCategories () {
+      try {
+        const { data } = await adminAPI.categories.get();
+        this.categories = data.categories.map(category => ({
+          ...category,
+          isEditing: false,
+          nameCache: ''
+        })); 
+        this.isLoading = false;
+      } catch (error) {
+        console.log(error);
+        this.isLoading = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot fetch categories, please try it later!'
+        })
+      }
     },
-    createCategory() {
-      // connect to server by API
-
-      this.categories.push({
-        id: uuid(),
-        name: this.newCategoryName,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      this.newCategoryName = '';
+    async createCategory() {
+      try {
+        if(!this.newCategoryName) return validateForm('without category name!');
+        this.isProcessing = true;
+        const { data } = await adminAPI.categories.create({name: this.newCategoryName});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.categories.push({
+          id: data.categoryId,
+          name: this.newCategoryName
+        })
+        this.isProcessing = false;
+        this.newCategoryName = '';
+      } catch (error) {
+        console.log(error);
+        this.isProcessing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot add new category, please try it later!'
+        })
+      }
     },
-    removeCategory(categoryId) {
-      this.categories = this.categories.filter(
-        category => category.id !== categoryId
-      );
+    async removeCategory(categoryId) {
+      try {
+        const { data } = await adminAPI.categories.delete({categoryId});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.categories = this.categories.filter(
+          category => category.id !== categoryId
+        );
+      } catch (error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot add new category, please try it later!'
+        })
+      }
     },
     toggleIsEditing(categoryId) {
       this.categories = this.categories.map(category => {
@@ -186,8 +194,19 @@ export default {
         return category
       });
     },
-    updateCategory({categoryId, name}) {
-      this.toggleIsEditing(categoryId);
+    async updateCategory({categoryId, name}) {
+      try {
+        const { data } = await adminAPI.categories.update({categoryId, name});
+        if(data.status !== 'success') throw new Error(data.message);
+        console.log(data);
+        this.toggleIsEditing(categoryId);
+      } catch (error) {
+        console.log(error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot edit this category, please try it later!'
+        })
+      }
     },
     handleCancel(categoryId){
       this.categories = this.categories.map(category => {
