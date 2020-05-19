@@ -13,6 +13,7 @@
       <button
         type="button"
         class="btn btn-link"
+        :disabled="isProcessing"
         @click="$router.back()"
       >Back</button>
 
@@ -26,7 +27,8 @@
   </form>
 </template>
 <script>
-import uuid from 'uuid/v4';
+import commentAPI from '../apis/comment';
+import { Toast, validateForm } from '../utils/helpers';
 
 export default {
   props:{
@@ -37,18 +39,38 @@ export default {
   },
   data() {
     return {
-      text: ''
+      text: '',
+      isProcessing: false
     }
   },
   methods: {
-    handleSubmit() {
-      console.log('submit');
-      this.$emit('after-create-comment', {
-        restaurantId: this.restaurantId,
-        commentId: uuid(),
-        text: this.text,
-      });
-      this.text = '';
+    async handleSubmit() {
+      try {
+        // console.log('submit');
+        if(this.text === '') return validateForm('without text input!');
+        this.isProcessing = true;
+        const { data } = await commentAPI.create({ 
+          restaurantId: this.restaurantId, 
+          text: this.text
+        });
+        console.log(data)
+        if(data.status !== 'success') throw new Error(data.message);
+
+        this.$emit('after-create-comment', {
+          commentId: data.commentId,
+          restaurantId: this.restaurantId,
+          text: this.text
+        });
+        this.isProcessing = false;
+        this.text = '';
+      } catch (error) {
+        console.log(error);
+        this.isProcessing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot add comment, please try it later!'
+        });
+      }
     },
   }
 }

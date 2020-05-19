@@ -9,7 +9,7 @@
     <div class="col-lg-4">
       <img
         class="img-responsive center-block" 
-        src="https://loremflickr.com/320/240/food,dessert,restaurant/"
+        :src="restaurant.image"
         style="width: 250px;margin-bottom: 25px;"
       >
       <div class="contact-info-wrap">
@@ -72,6 +72,9 @@
   </div>
 </template>
 <script>
+import userAPI from '../apis/users';
+import { Toast } from '../utils/helpers';
+
 export default {
   props: {
     initialRestaurant: {
@@ -81,7 +84,16 @@ export default {
   },
   data() {
     return {
-      restaurant: this.initialRestaurant
+      restaurant: this.initialRestaurant,
+      isProcesssing: false
+    }
+  },
+  watch: {
+    initialRestaurant(newValue) {
+      this.restaurant = {
+        ...this.restaurant,
+        ...newValue
+      }
     }
   },
   methods: {
@@ -97,16 +109,44 @@ export default {
         isFavorited: true
       }
     },
-    removeLiked(){
-      this.restaurant = {
-        ...this.restaurant,
-        isLiked: false
+    async removeLiked(){
+      try{
+        const restaurantId = this.restaurant.id
+        this.isProcesssing = true;
+        const { data } = await userAPI.removeLike({ restaurantId });
+        console.log(data)
+        if(data.status !== 'success') throw new Error(data.message);
+        this.restaurant = {
+          ...this.restaurant,
+          isLiked: false
+        }
+        this.isProcesssing = false;
+      } catch(error) {
+        this.isProcesssing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot remove like to this restaurant, please try it later!'
+        });
       }
     },
-    addLiked(){
-      this.restaurant = {
-        ...this.restaurant,
-        isLiked: true
+    async addLiked(){
+      try{
+        const restaurantId = this.restaurant.id
+        this.isProcesssing = true;
+        const { data } = await userAPI.addLike({ restaurantId });
+        console.log(data)
+        if(data.status !== 'success') throw new Error(data.message);
+        this.restaurant = {
+          ...this.restaurant,
+          isLiked: true
+        }
+        this.isProcesssing = false;
+      } catch(error) {
+        this.isProcesssing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot add like to this restaurant, please try it later!'
+        });
       }
     }
   }

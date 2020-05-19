@@ -12,6 +12,7 @@
           v-if="currentUser.isAdmin"
           type="button"
           class="btn btn-danger float-right"
+          :disabled="isProcessing"
           @click.stop.prevent="handleDeleteBtnClick(comment.id)"
         >
           Delete
@@ -31,18 +32,10 @@
   </div>
 </template>
 <script>
+import commentAPI from '../apis/comment';
+import { Toast } from '../utils/helpers';
 import { fromNowFilter } from '../utils/mixins';
-
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: '管理者',
-    email: 'root@example.com',
-    image: 'https://i.pravatar.cc/300',
-    isAdmin: true
-  },
-  isAuthenticated: true
-}
+import { mapState } from 'vuex';
 
 export default {
   mixins: [ fromNowFilter ],
@@ -54,13 +47,29 @@ export default {
   },
   data() {
     return {
-      currentUser: dummyUser.currentUser
+      isProcessing: false
     }
   },
+  computed: {
+    ...mapState(["currentUser"])
+  },
   methods: {
-    handleDeleteBtnClick(commentId) {
-      console.log('Handle Delete Button Click', commentId);
-      this.$emit('after-delete-comment', commentId);
+    async handleDeleteBtnClick(commentId) {
+      try {
+        console.log('Handle Delete Button Click', commentId);
+        this.isProcessing = true;
+        const { data } = await commentAPI.delete({commentId});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.isProcessing = false;
+        this.$emit('after-delete-comment', commentId);
+      } catch (error) {
+        console.log(error);
+        this.isProcessing = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot delete this comment, please try it later!'
+        });
+      }
     }
   }
 }

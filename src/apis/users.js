@@ -41,5 +41,5 @@ export default {
     return apiHelper.delete(`/following/${userId}`, {
       headers: { Authorization: `Bearer ${getToken()}`}
     })
-  },
+  }
 }

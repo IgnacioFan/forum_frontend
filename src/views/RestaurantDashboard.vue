@@ -1,5 +1,8 @@
 <template>
-	<div class="container py-5">
+	<div 
+		v-show="!isLoading"
+		class="container py-5"
+	>
 		<div>
 			<h1>{{ restaurant.name }}</h1>
 			<span class="badge badge-secondary mt-1 mb-3">
@@ -24,31 +27,9 @@
 	</div>
 </template>
 <script>
-const dummyData = {
-	"restaurant": {
-		"id": 1,
-		"name": "Ferne Prosacco",
-		"tel": "(183) 715-3203 x82462",
-		"address": "20877 Hodkiewicz Parkways",
-		"opening_hours": "08:00",
-		"description": "libero",
-		"image": "http://lorempixel.com/640/480",
-		"viewCounts": 0,
-		"createdAt": "2020-05-06T04:05:55.000Z",
-		"updatedAt": "2020-05-06T04:05:55.000Z",
-		"CategoryId": 2,
-		"Comments": [],
-		"Category": {
-            "id": 3,
-            "name": "義大利料理",
-            "createdAt": "2019-06-22T09:00:43.000Z",
-            "updatedAt": "2019-06-22T09:00:43.000Z"
-        },
-		"FavoritedUsers": []
-	},
-	"commentCounts": 0,
-	"favoriteUser": 0
-}
+import restaurantsAPI from '../apis/restaurants';
+import { Toast } from '../utils/helpers';
+
 export default {
 	data() {
 		return {
@@ -58,7 +39,8 @@ export default {
 				categoryName: '',
 				viewCounts: -1,
 				commentCounts: -1
-			}
+			},
+			isLoading: true
 		}
 	},
 	created() {
@@ -66,14 +48,32 @@ export default {
 		console.log(restaurantId);
 		this.fetchDashboard(restaurantId);
 	},
+	beforeRouteUpdate(to, from, next) {
+    const { id: restaurantId } = to.params;
+    this.fetchDashboard(restaurantId);
+    next();
+  },
 	methods: {
-		fetchDashboard(restaurantId) {
-			this.restaurant = {
-				id: restaurantId,
-				name: dummyData.restaurant.name,
-				categoryName: dummyData.restaurant.Category.name,
-				viewCounts: dummyData.restaurant.viewCounts,
-				commentCounts: dummyData.commentCounts
+		async fetchDashboard(restaurantId) {
+			try {
+				const { data } = await restaurantsAPI.getRestaurant({restaurantId});
+				// console.log(data);
+				const { restaurant } = data
+				this.restaurant = {
+					id: restaurant.id,
+					name: restaurant.name,
+					categoryName: restaurant.Category.name,
+					viewCounts: restaurant.viewCounts,
+					commentCounts: restaurant.Comments.length
+				}	
+				this.isLoading = false;
+			} catch (error) {
+				console.log(error);
+				this.isLoading = false;
+				Toast.fire({
+					icon: 'error',
+					title: 'Cannot fetch this restaurant, please try it later!'
+				})
 			}
 		}
 	}
