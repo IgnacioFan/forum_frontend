@@ -1,14 +1,14 @@
 <template>
   <div class="card mt-4" id="following">
     <h6 class="mt-4 mb-1 pl-4 header">
-      {{followings.length}} {{(followings.length > 1)? "people": "person"}}, you are following
+      {{(followingUsers.length > 0)? followingUsers.length: 0}} {{(followingUsers.length > 1)? "people": "person"}}, you are following
     </h6>
     <hr class="mx-3" />
     <div class="card-body">
       <div class="row">
-        <template v-if="followings.length > 0">
+        <template v-if="followingUsers.length > 0">
           <router-link
-            v-for="user in followings"
+            v-for="user in followingUsers"
             :key="user.id"
             :to="{name: 'user-profile', params: {id: user.id}}"
           >
@@ -33,14 +33,9 @@
 <script>
 export default {
   props: {
-    initialUserFollowings: {
+    followingUsers: {
       type: Array,
       required: true
-    }
-  },
-  data() {
-    return {
-      followings: this.initialUserFollowings
     }
   }
 }

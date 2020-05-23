@@ -1,6 +1,8 @@
 <template>
   <div class="card shadow-sm mt-4" id="comment">
-    <h6 class="mt-4 mb-1 pl-4 header">{{comments.length}} Comments For These Restaurants</h6>
+    <h6 class="mt-4 mb-1 pl-4 header">
+      {{comments.length > 0? comments.length+'Comment For Restaurants': `0 Comment For Restaurants`}}
+    </h6>
     <hr class="mx-3" />
     <div class="card-body">
       <div class="row">
@@ -35,14 +37,9 @@
 <script>
 export default {
   props: {
-    initialComments: {
+    comments: {
       type: Array,
       required: true
-    }
-  },
-  data() {
-    return {
-      comments: this.initialComments
     }
   }
 }

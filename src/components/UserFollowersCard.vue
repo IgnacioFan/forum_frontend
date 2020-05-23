@@ -1,7 +1,7 @@
 <template>
   <div class="card mt-4" id="following">
     <h6 class="mt-4 mb-1 pl-4 header">
-      {{followers.length}} {{(followers.length > 1)? "people": "person"}} followed you
+      {{(followers.length > 0)? followers.length: 0}} {{(followers.length > 1)? "people": "person"}} followed you
     </h6>
     <hr class="mx-3" />
     <div class="card-body">
@@ -33,14 +33,9 @@
 <script>
 export default {
   props: {
-    initialUserFollowers: {
+    followers: {
       type: Array,
       required: true
-    }
-  },
-  data() {
-    return {
-      followers: this.initialUserFollowers
     }
   }
 }
