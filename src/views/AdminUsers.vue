@@ -1,5 +1,8 @@
 <template>
-  <div class="container py-5">
+  <div 
+    v-show="!isLoading"
+    class="container py-5"
+  >
     <AdminNav />
 
     <table class="table">
@@ -35,10 +38,10 @@
           <td>
             <template v-if="currentUser.id !== user.id">
             <button
-              v-if="user.isAdmin"
+              v-if="!user.isAdmin"
               type="button"
               class="btn btn-link"
-              @click="toggleUserRole(user.id)"
+              @click.stop.prevent="toggleUserRole(user.id)"
             >
               set as admin
             </button>
@@ -46,7 +49,7 @@
               v-else
               type="button"
               class="btn btn-link"
-              @click="toggleUserRole(user.id)"
+              @click.stop.prevent="toggleUserRole(user.id)"
             >
               set as user
             </button>
@@ -58,59 +61,63 @@
   </div>
 </template>
 <script>
-import AdminNav from '../components/AdminNav.vue';
-const dummyData = {
-  users: [
-    {
-      id: 1,
-      name: 'root',
-      email: 'root@example.com',
-      isAdmin: true,
-    },
-    {
-      id: 2,
-      name: 'user1',
-      email: 'user1@example.com',
-      isAdmin: false,
-    },
-    {
-      id: 3,
-      name: 'user2',
-      email: 'user2@example.com',
-      isAdmin: false,
-    }
-  ]
-}
+import adminAPI from '../apis/admin';
+import AdminNav from '../components/AdminNav';
+import { Toast } from '../utils/helpers';
+import { mapState } from 'vuex';
+
 export default {
   components: {
     AdminNav,
   },
   data() {
     return {
-      currentUser: {
-        id: 1
-      },
-      users: []
+      users: [],
+      isLoading: true
     }
+  },
+  computed: {
+    ...mapState(["currentUser"])
   },
   created() {
     this.fetchUser();
   },
   methods: {
-    fetchUser() {
-      this.users  = dummyData.users;
+    async fetchUser() {
+      try {
+        const { data } = await adminAPI.users.get();
+        console.log(data.users)
+        this.users  = data.users;
+        this.isLoading = false;
+      } catch (error) {
+        console.log('fetch users error: ',error);
+        this.isLoading = true;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot fetch all users, please try it later!'
+        });
+      }
     },
-    toggleUserRole(userId) {
-      this.users = this.users.map(user => {
-        if(user.id === userId){
-          console.log(userId)
-          return {
-            ...user,
-            isAdmin: !user.isAdmin
-          }
-        }
-        return user;
-      });
+    async toggleUserRole(userId) {
+      try {
+        const { data } = await adminAPI.users.toggleRole({userId});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.users = this.users.map(user => {
+          if(user.id === userId){
+              return {
+                ...user,
+                isAdmin: !user.isAdmin
+              }
+            }
+            return user;
+        });
+      } catch (error) {
+        console.log('toggle user role error: ',error);
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot toggle this user, please try it later!'
+        });
+      }
     }
   }
 }
