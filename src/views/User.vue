@@ -80,7 +80,6 @@ export default {
     async fetchUserProfile(userId) {
       try {
         const { data } = await usersAPI.getUser({userId});
-        console.log(data);
         const { profile } = data
         this.profile = {
           ...this.profile,
@@ -101,11 +100,11 @@ export default {
         this.isFollowed = data.isFollowed,
         this.isLoading = false;
       } catch (error) {
-        console.log(error);
+        console.log('cannot fetch user:', error);
         this.isLoading = true;
         Toast.fire({
           icon: 'error',
-          title: 'Cannot fetch this restaurant info, please try it later!'
+          title: 'Cannot fetch this user profile, please try it later!'
         });
       }
     },

@@ -1,5 +1,8 @@
 <template>
-  <div class="container py-5">
+  <div 
+    v-show="!isLoading"
+    class="container py-5"
+  >
     <form @submit.stop.prevent="handleSubmit">
       <div class="form-group">
         <label for="name">Name</label>
@@ -36,6 +39,7 @@
       <button
         type="submit"
         class="btn btn-primary"
+        :disabled="isProcessing"
       >
         Submit
       </button>
@@ -43,18 +47,10 @@
   </div>
 </template>
 <script>
-const dummyData = {
-  'profile': {
-    'id': 1,
-    'name': 'root',
-    'email': 'root@example.com',
-    'isAdmin': true,
-    'image': 'https://i.imgur.com/58ImzMM.png',
-    'createdAt': '2019-07-30T16:24:54.983Z',
-    'updatedAt': '2019-08-01T10:33:51.095Z',
-  },
-  'isFollowed': false
-}
+import { mapState } from 'vuex';
+import userAPI from '../apis/users';
+import { Toast, validateForm } from '../utils/helpers';
+
 export default {
   data() {
     return {
@@ -62,36 +58,76 @@ export default {
         id: -1,
         name: '',
         image: ''
-      }
+      },
+      isLoading: true,
+      isProcessing: false 
     }
+  },
+  computed: {
+    ...mapState(["currentUser"])
   },
   created() {
     const { id: userId } = this.$route.params;
-    this.fetchUserProfile(userId);
+    this.setUserProfile(userId);
+  },
+  beforeRouteUpdate(to, from, next){
+    const { id: userId } = to.params;
+    this.setUserProfile(userId);
+    next();
   },
   methods: {
-    fetchUserProfile(userId) {
-      this.userProfile = {
-        ...this.userProfile,
-        id: userId,
-        name: dummyData.profile.name,
-        image: dummyData.profile.image
+    setUserProfile(userId) {
+      try {
+        if(this.currentUser.id !== userId) return this.$router.push(`/users/${userId}`);
+      
+        this.userProfile = {
+          ...this.userProfile,
+          id: this.currentUser.id,
+          name: this.currentUser.name,
+          image: this.currentUser.image
+        }
+        this.isLoading = false;
+      } catch(error) {
+        console.log('set user profile: ',error);
+        this.isLoading = false;
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot fetch user profile, please try it later!'
+        });
       }
     },
     handleFileChange(e) {
       const files = e.target.files;
-      console.log(files)
+      // console.log(files)
       if(files === 0) return this.userProfile.image;
       else {
         const imageUrl = window.URL.createObjectURL(files[0]);
         this.userProfile.image = imageUrl;
       }
     },
-    handleSubmit(e) {
-      const form = e.target;
-      const formData = new FormData(form);
-      for(let [key, value] of formData.entries()){
-        console.log(`${key} : ${value}`);
+    async handleSubmit(e) {
+      try {
+        this.isProcessing = true;
+        if(this.userProfile.name === '') {
+          this.isProcessing = false;
+          return validateForm('without name');
+        }
+        const form = e.target;
+        const formData = new FormData(form);
+        for(let [key, value] of formData.entries()){
+          console.log(`${key} : ${value}`);
+        }
+        const userId = this.userProfile.id;
+        const { data } = await userAPI.editUser({userId, formData});
+        if(data.status !== 'success') throw new Error(data.message);
+        this.$router.push(`/users/${userId}`);
+      } catch (error) {
+        // console.log('user edit submit: ', error);
+        this.isProcessing = false; 
+        Toast.fire({
+          icon: 'error',
+          title: 'Cannot edit user profile, please try it later!'
+        });
       }
     }
   }

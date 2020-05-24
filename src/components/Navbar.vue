@@ -24,7 +24,7 @@
         <router-link v-if="currentUser.isAdmin" to="/admin" class="text-white mr-3">Admin</router-link>
         <!-- is user login -->
         <template v-if="isAuthenticated">
-          <router-link to="#" class="text-white mr-3">Hey, {{ currentUser.name || 'user' }}</router-link>
+          <router-link :to="{ name: 'user-profile', params: { id: currentUser.id }}" class="text-white mr-3">Hey, {{ currentUser.name || 'user' }}</router-link>
           <button type="button" class="btn btn-sm btn-outline-success my-2 my-sm-0">Log out</button>
         </template>
       </div>
