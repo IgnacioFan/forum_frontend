@@ -7,6 +7,12 @@ import store from '../store'
 
 Vue.use(VueRouter)
 
+const AuthorizeIsAdmin = (to, from, next) => {
+  const currentUser = store.state.currentUser;
+  if(currentUser && !currentUser.isAdmin) return next('/404');
+  next();
+}
+
 const routes = [
   {
     path: '/',
@@ -16,37 +22,44 @@ const routes = [
   {
     path: '/admin',
     exact: true,
-    redirect: '/admin/restaurants'
+    redirect: '/admin/restaurants',
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/restaurants',
     name: 'admin-restaurants',
-    component: () => import('../views/AdminRestaurants.vue')
+    component: () => import('../views/AdminRestaurants.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/restaurants/new',
     name: 'admin-restaurants-new',
-    component: () => import('../views/AdminRestaurantNew.vue')
+    component: () => import('../views/AdminRestaurantNew.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/restaurants/:id',
     name: 'admin-restaurant',
-    component: () => import('../views/AdminRestaurant.vue')
+    component: () => import('../views/AdminRestaurant.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/restaurants/:id/edit',
     name: 'admin-restaurants-edit',
-    component: () => import('../views/AdminRestaurantEdit.vue')
+    component: () => import('../views/AdminRestaurantEdit.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/categories',
     name: 'admin-categories',
-    component: () => import('../views/AdminCategories.vue')
+    component: () => import('../views/AdminCategories.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/admin/users',
     name: 'admin-users',
-    component: () => import('../views/AdminUsers.vue')
+    component: () => import('../views/AdminUsers.vue'),
+    beforeEnter: AuthorizeIsAdmin
   },
   {
     path: '/signin',
@@ -110,9 +123,28 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  console.log('swich routes')
-  store.dispatch('fetchCurrentUser')
+router.beforeEach(async (to, from, next) => {
+  // get token from client
+  const tokenInLocalStorage = localStorage.getItem('token');
+  const tokenInStore = store.state.token;
+  let isAuthenticated = store.state.isAuthenticated;
+
+  // fetch once
+  if(tokenInLocalStorage && tokenInLocalStorage !== tokenInStore) {
+    isAuthenticated = await store.dispatch('fetchCurrentUser');
+  }
+  // these pages don't need token
+  const pathWithoutAuthentication = ["sign-in", "sign-up"];
+  // token is invalid, then redirect to signin page
+  if(!isAuthenticated && !pathWithoutAuthentication.includes(to.name)) {
+    next('/signin');
+    return;
+  }
+  // token is valid, then reidrect to restaurants page
+  if(isAuthenticated && pathWithoutAuthentication.includes(to.name)) {
+    next('/restaurants');
+    return;
+  }
   next();
 });
 

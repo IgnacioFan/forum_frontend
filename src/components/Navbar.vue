@@ -25,7 +25,11 @@
         <!-- is user login -->
         <template v-if="isAuthenticated">
           <router-link :to="{ name: 'user-profile', params: { id: currentUser.id }}" class="text-white mr-3">Hey, {{ currentUser.name || 'user' }}</router-link>
-          <button type="button" class="btn btn-sm btn-outline-success my-2 my-sm-0">Log out</button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-success my-2 my-sm-0"
+            @click="logout"
+          >Log out</button>
         </template>
       </div>
     </div>
@@ -38,6 +42,12 @@ import { mapState } from 'vuex';
 export default {
   computed: {
     ...mapState(['currentUser', 'isAuthenticated'])
+  },
+  methods: {
+    logout() {
+      this.$store.commit('revokeAuthentication');
+      this.$router.push('/signin')
+    }
   }
 }
 </script>
